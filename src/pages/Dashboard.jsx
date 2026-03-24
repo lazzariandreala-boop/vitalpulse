@@ -36,6 +36,13 @@ export default function Dashboard() {
   const lastBody = bodyData[0];
   const activeMeds = meds.length;
 
+  const systolic = (bpData ? bpData?.find(x => x.systolic) : bodyData.find(x => x.systolic))?.systolic;
+  const diastolic = (bpData ? bpData?.find(x => x.diastolic) : bodyData.find(x => x.diastolic))?.diastolic;
+  const heart_rate = (bpData ? bpData?.find(x => x.heart_rate) : bodyData.find(x => x.heart_rate))?.heart_rate;
+  const weight = bodyData.find(x => x.weight)?.weight;
+  const temperature = bodyData.find(x => x.temperature)?.temperature;
+  const hba1c = bodyData.find(x => x.hba1c)?.hba1c;
+
   // Combine all activities for timeline
   const allActivities = [
     ...bpData.slice(0, 3).map(d => ({ ...d, _type: 'BloodPressure' })),
@@ -56,7 +63,7 @@ export default function Dashboard() {
         <StatCard
           icon={Heart}
           label="Pressione"
-          value={lastBP ? `${lastBP.systolic}/${lastBP.diastolic}` : null}
+          value={lastBP ? `${systolic}/${diastolic}` : null}
           unit="mmHg"
           color="primary"
           to="/blood-pressure?add=true"
@@ -64,7 +71,7 @@ export default function Dashboard() {
         <StatCard
           icon={Activity}
           label="Frequenza Cardiaca"
-          value={lastBP?.heart_rate}
+          value={heart_rate}
           unit="bpm"
           color="destructive"
           to="/blood-pressure?add=true"
@@ -72,7 +79,7 @@ export default function Dashboard() {
         <StatCard
           icon={Scale}
           label="Peso"
-          value={lastBody?.weight}
+          value={weight}
           unit="kg"
           color="accent"
           to="/body-metrics?add=true"
@@ -80,7 +87,7 @@ export default function Dashboard() {
         <StatCard
           icon={Thermometer}
           label="Temperatura"
-          value={lastBody?.temperature}
+          value={temperature}
           unit="°C"
           color="chart4"
           to="/body-metrics?add=true"
@@ -88,7 +95,7 @@ export default function Dashboard() {
         <StatCard
           icon={Droplets}
           label="Glicata (HbA1c)"
-          value={lastBody?.hba1c}
+          value={hba1c}
           unit="%"
           color="chart3"
           to="/body-metrics?add=true"
