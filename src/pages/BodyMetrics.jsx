@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/apiClient';
-import { Scale, Trash2 } from 'lucide-react';
+import { Scale, Trash2, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -43,6 +43,7 @@ function WeightChart({ data }) {
 export default function BodyMetrics() {
   const urlParams = new URLSearchParams(window.location.search);
   const [showForm, setShowForm] = useState(urlParams.get('add') === 'true');
+  const [editingItem, setEditingItem] = useState(null);
   const [confirmId, setConfirmId] = useState(null);
   const qc = useQueryClient();
 
@@ -72,7 +73,12 @@ export default function BodyMetrics() {
       <PageHeader title="Metriche Corporee" subtitle="Peso, BMI, glicemia e altro"
         onAdd={() => setShowForm(true)} addLabel="Nuova Misurazione" />
 
-      {showForm && <BodyMetricForm onClose={() => setShowForm(false)} />}
+      {(showForm || editingItem) && (
+        <BodyMetricForm
+          onClose={() => { setShowForm(false); setEditingItem(null); }}
+          initialData={editingItem}
+        />
+      )}
 
       {metrics.length > 0 && <WeightChart data={metrics} />}
 
@@ -89,7 +95,8 @@ export default function BodyMetrics() {
                   {m.weight && <span className="font-bold">{m.weight} kg</span>}
                   {m.bmi && <span className="text-muted-foreground">BMI {m.bmi}</span>}
                   {m.body_fat && <span className="text-muted-foreground">Grasso {m.body_fat}%</span>}
-                  {m.blood_sugar && <span className="text-muted-foreground">Glicemia {m.blood_sugar}</span>}
+                  {m.blood_sugar && <span className="text-muted-foreground">Glicemia {m.blood_sugar} mg/dL</span>}
+                  {m.hba1c && <span className="text-muted-foreground">HbA1c {m.hba1c}%</span>}
                   {m.oxygen_saturation && <span className="text-muted-foreground">SpO2 {m.oxygen_saturation}%</span>}
                   {m.temperature && <span className="text-muted-foreground">{m.temperature}°C</span>}
                 </div>
@@ -97,10 +104,16 @@ export default function BodyMetrics() {
                   {format(new Date(m.measured_at), 'dd MMMM yyyy', { locale: it })}
                 </p>
               </div>
-              <button onClick={() => setConfirmId(m.id)}
-                className="p-2 text-muted-foreground/40 hover:text-destructive lg:opacity-0 lg:group-hover:opacity-100 transition-all">
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
+                <button onClick={() => { setEditingItem(m); setShowForm(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  className="p-2 text-muted-foreground/40 hover:text-primary">
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button onClick={() => setConfirmId(m.id)}
+                  className="p-2 text-muted-foreground/40 hover:text-destructive">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>

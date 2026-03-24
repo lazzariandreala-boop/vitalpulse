@@ -11,6 +11,7 @@ import BPChart from '../components/dashboard/BPChart';
 export default function BloodPressure() {
   const urlParams = new URLSearchParams(window.location.search);
   const [showForm, setShowForm] = useState(urlParams.get('add') === 'true');
+  const [editingItem, setEditingItem] = useState(null);
   const qc = useQueryClient();
 
   const { data: readings = [], isLoading } = useQuery({
@@ -36,7 +37,12 @@ export default function BloodPressure() {
         addLabel="Nuova Misurazione"
       />
 
-      {showForm && <BPForm onClose={() => setShowForm(false)} />}
+      {(showForm || editingItem) && (
+        <BPForm
+          onClose={() => { setShowForm(false); setEditingItem(null); }}
+          initialData={editingItem}
+        />
+      )}
 
       {readings.length > 0 && <BPChart data={readings} />}
 
@@ -51,7 +57,10 @@ export default function BloodPressure() {
       ) : (
         <div className="space-y-2">
           {readings.map(r => (
-            <BPCard key={r.id} reading={r} onDelete={(id) => deleteMutation.mutate(id)} />
+            <BPCard key={r.id} reading={r}
+              onDelete={(id) => deleteMutation.mutate(id)}
+              onEdit={(item) => { setEditingItem(item); setShowForm(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            />
           ))}
         </div>
       )}

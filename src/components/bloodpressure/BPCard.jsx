@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Trash2, Heart } from 'lucide-react';
+import { Trash2, Heart, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
@@ -12,7 +12,7 @@ function getBPCategory(sys, dia) {
   return                               { label: 'Stadio 2', bg: 'bg-red-500/15',    text: 'text-red-400',    bar: 'bg-red-500' };
 }
 
-export default function BPCard({ reading, onDelete }) {
+export default function BPCard({ reading, onDelete, onEdit }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const cat = getBPCategory(reading.systolic, reading.diastolic);
   const armLabel = reading.arm === 'left' ? 'Sin.' : 'Des.';
@@ -67,13 +67,17 @@ export default function BPCard({ reading, onDelete }) {
           )}
         </div>
 
-        {/* delete */}
-        <button
-          onClick={() => setConfirmOpen(true)}
-          className="p-2 rounded-xl text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 lg:opacity-0 lg:group-hover:opacity-100 transition-all"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        {/* edit + delete */}
+        <div className="flex items-center gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
+          <button onClick={() => onEdit?.(reading)}
+            className="p-2 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10">
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button onClick={() => setConfirmOpen(true)}
+            className="p-2 rounded-xl text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
     </>

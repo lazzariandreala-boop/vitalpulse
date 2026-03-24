@@ -8,33 +8,43 @@ import { base44 } from '@/api/apiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 
-export default function BPForm({ onClose }) {
-  const [form, setForm] = useState({
-    systolic: '', diastolic: '', heart_rate: '',
-    arm: 'left', position: 'sitting', notes: ''
-  });
+const EMPTY = { systolic: '', diastolic: '', heart_rate: '', arm: 'left', position: 'sitting', notes: '' };
+
+export default function BPForm({ onClose, initialData }) {
+  const isEdit = !!initialData;
+  const [form, setForm] = useState(() => isEdit ? {
+    systolic:   String(initialData.systolic   ?? ''),
+    diastolic:  String(initialData.diastolic  ?? ''),
+    heart_rate: String(initialData.heart_rate ?? ''),
+    arm:        initialData.arm      ?? 'left',
+    position:   initialData.position ?? 'sitting',
+    notes:      initialData.notes    ?? '',
+  } : EMPTY);
   const qc = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (data) => base44.entities.BloodPressure.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bp'] }); onClose(); }
+    mutationFn: (data) => isEdit
+      ? base44.entities.BloodPressure.update(initialData.id, data)
+      : base44.entities.BloodPressure.create(data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bp'] }); onClose(); },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate({
+    const data = {
       ...form,
-      systolic: Number(form.systolic),
-      diastolic: Number(form.diastolic),
+      systolic:   Number(form.systolic),
+      diastolic:  Number(form.diastolic),
       heart_rate: form.heart_rate ? Number(form.heart_rate) : undefined,
-      measured_at: new Date().toISOString(),
-    });
+    };
+    if (!isEdit) data.measured_at = new Date().toISOString();
+    mutation.mutate(data);
   };
 
   return (
     <div className="bg-card rounded-2xl border shadow-lg p-5 mb-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold">Nuova Misurazione</h3>
+        <h3 className="font-semibold">{isEdit ? 'Modifica Misurazione' : 'Nuova Misurazione'}</h3>
         <button onClick={onClose}><X className="w-5 h-5 text-muted-foreground" /></button>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,7 +94,7 @@ export default function BPForm({ onClose }) {
             onChange={e => setForm({ ...form, notes: e.target.value })} />
         </div>
         <Button type="submit" className="w-full rounded-xl" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Salvataggio...' : 'Salva Misurazione'}
+          {mutation.isPending ? 'Salvataggio...' : isEdit ? 'Aggiorna Misurazione' : 'Salva Misurazione'}
         </Button>
       </form>
     </div>

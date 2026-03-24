@@ -83,9 +83,9 @@ export default function Dashboard() {
         />
         <StatCard
           icon={Droplets}
-          label="Glicemia"
-          value={lastBody?.blood_sugar}
-          unit="mg/dL"
+          label="Glicata (HbA1c)"
+          value={lastBody?.hba1c}
+          unit="%"
           color="chart3"
         />
         <StatCard

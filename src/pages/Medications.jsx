@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/apiClient';
-import { Pill, Trash2, Clock } from 'lucide-react';
+import { Pill, Trash2, Clock, Pencil, Syringe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import PageHeader from '../components/shared/PageHeader';
@@ -27,6 +27,7 @@ const timeLabels = {
 export default function Medications() {
   const urlParams = new URLSearchParams(window.location.search);
   const [showForm, setShowForm] = useState(urlParams.get('add') === 'true');
+  const [editingItem, setEditingItem] = useState(null);
   const qc = useQueryClient();
 
   const { data: meds = [], isLoading } = useQuery({
@@ -56,7 +57,12 @@ export default function Medications() {
       <PageHeader title="Farmaci" subtitle="Gestisci i tuoi farmaci e terapie"
         onAdd={() => setShowForm(true)} addLabel="Nuovo Farmaco" />
 
-      {showForm && <MedicationForm onClose={() => setShowForm(false)} />}
+      {(showForm || editingItem) && (
+        <MedicationForm
+          onClose={() => { setShowForm(false); setEditingItem(null); }}
+          initialData={editingItem}
+        />
+      )}
 
       {meds.length === 0 && !showForm ? (
         <EmptyState icon={Pill} title="Nessun farmaco" description="Aggiungi i farmaci che stai assumendo"
@@ -69,7 +75,8 @@ export default function Medications() {
               <div className="space-y-2">
                 {activeMeds.map(m => (
                   <MedCard key={m.id} med={m} onDelete={deleteMutation.mutate}
-                    onToggle={(active) => toggleMutation.mutate({ id: m.id, active })} />
+                    onToggle={(active) => toggleMutation.mutate({ id: m.id, active })}
+                    onEdit={(item) => { setEditingItem(item); setShowForm(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
                 ))}
               </div>
             </div>
@@ -80,7 +87,8 @@ export default function Medications() {
               <div className="space-y-2 opacity-60">
                 {inactiveMeds.map(m => (
                   <MedCard key={m.id} med={m} onDelete={deleteMutation.mutate}
-                    onToggle={(active) => toggleMutation.mutate({ id: m.id, active })} />
+                    onToggle={(active) => toggleMutation.mutate({ id: m.id, active })}
+                    onEdit={(item) => { setEditingItem(item); setShowForm(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
                 ))}
               </div>
             </div>
@@ -91,8 +99,9 @@ export default function Medications() {
   );
 }
 
-function MedCard({ med, onDelete, onToggle }) {
+function MedCard({ med, onDelete, onToggle, onEdit }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const isInsulin = /insul/i.test(med.name);
   return (
     <>
       <ConfirmDialog
@@ -103,13 +112,26 @@ function MedCard({ med, onDelete, onToggle }) {
         description="Il farmaco e tutte le sue informazioni verranno eliminati definitivamente."
       />
       <div className="bg-card rounded-xl border p-4 flex items-center gap-4 group hover:shadow-sm transition-shadow">
-        <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center shrink-0">
-          <Pill className="w-5 h-5 text-purple-400" />
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isInsulin ? 'bg-blue-500/15' : 'bg-purple-500/15'}`}>
+          {isInsulin
+            ? <Syringe className="w-5 h-5 text-blue-400" />
+            : <Pill className="w-5 h-5 text-purple-400" />
+          }
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <p className="font-medium text-sm">{med.name}</p>
-            <Badge variant="secondary" className="text-[10px]">{med.dosage}</Badge>
+            {isInsulin ? (
+              med.insulin_basal || med.insulin_bolus ? (
+                <Badge variant="secondary" className="text-[10px]">
+                  {med.insulin_basal ? `Bas: ${med.insulin_basal}U` : ''}
+                  {med.insulin_basal && med.insulin_bolus ? ' · ' : ''}
+                  {med.insulin_bolus ? `Boli: ~${med.insulin_bolus}U` : ''}
+                </Badge>
+              ) : med.dosage ? <Badge variant="secondary" className="text-[10px]">{med.dosage}</Badge> : null
+            ) : (
+              <Badge variant="secondary" className="text-[10px]">{med.dosage}</Badge>
+            )}
           </div>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -122,10 +144,16 @@ function MedCard({ med, onDelete, onToggle }) {
           {med.purpose && <p className="text-xs text-muted-foreground mt-0.5">{med.purpose}</p>}
         </div>
         <Switch checked={med.active} onCheckedChange={(checked) => onToggle(checked)} />
-        <button onClick={() => setConfirmOpen(true)}
-          className="p-2 text-muted-foreground/40 hover:text-destructive lg:opacity-0 lg:group-hover:opacity-100 transition-all">
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
+          <button onClick={() => onEdit?.(med)}
+            className="p-2 text-muted-foreground/40 hover:text-primary">
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button onClick={() => setConfirmOpen(true)}
+            className="p-2 text-muted-foreground/40 hover:text-destructive">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </>
   );

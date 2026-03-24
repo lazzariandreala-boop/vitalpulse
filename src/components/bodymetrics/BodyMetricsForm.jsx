@@ -6,32 +6,44 @@ import { base44 } from '@/api/apiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 
-export default function BodyMetricForm({ onClose }) {
-  const [form, setForm] = useState({
-    measured_at: new Date().toISOString().split('T')[0],
-    weight: '', height: '', body_fat: '', waist: '', hip: '',
-    blood_sugar: '', oxygen_saturation: '', temperature: '', notes: ''
-  });
+const EMPTY = {
+  measured_at: new Date().toISOString().split('T')[0],
+  weight: '', height: '', body_fat: '', waist: '', hip: '',
+  blood_sugar: '', hba1c: '', oxygen_saturation: '', temperature: '', notes: '',
+};
+
+export default function BodyMetricForm({ onClose, initialData }) {
+  const isEdit = !!initialData;
+  const [form, setForm] = useState(() => isEdit ? {
+    measured_at: initialData.measured_at?.split('T')[0] ?? EMPTY.measured_at,
+    weight:            initialData.weight            ?? '',
+    height:            initialData.height            ?? '',
+    body_fat:          initialData.body_fat          ?? '',
+    waist:             initialData.waist             ?? '',
+    hip:               initialData.hip               ?? '',
+    blood_sugar:       initialData.blood_sugar       ?? '',
+    hba1c:             initialData.hba1c             ?? '',
+    oxygen_saturation: initialData.oxygen_saturation ?? '',
+    temperature:       initialData.temperature       ?? '',
+    notes:             initialData.notes             ?? '',
+  } : EMPTY);
   const qc = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (data) => base44.entities.BodyMetric.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['body'] }); onClose(); }
+    mutationFn: (data) => isEdit
+      ? base44.entities.BodyMetric.update(initialData.id, data)
+      : base44.entities.BodyMetric.create(data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['body'] }); onClose(); },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = { measured_at: form.measured_at, notes: form.notes };
-    
-    // Only include numeric fields that have values
-    ['weight','height','body_fat','waist','hip','blood_sugar','oxygen_saturation','temperature']
-      .forEach(f => { if (form[f]) data[f] = Number(form[f]); });
-    
-    // Auto-calculate BMI
+    ['weight','height','body_fat','waist','hip','blood_sugar','hba1c','oxygen_saturation','temperature']
+      .forEach(f => { if (form[f] !== '' && form[f] !== undefined) data[f] = Number(form[f]); });
     if (data.weight && data.height) {
       data.bmi = Math.round((data.weight / ((data.height / 100) ** 2)) * 10) / 10;
     }
-
     mutation.mutate(data);
   };
 
@@ -49,34 +61,34 @@ export default function BodyMetricForm({ onClose }) {
   return (
     <div className="bg-card rounded-2xl border shadow-lg p-5 mb-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold">Nuova Misurazione</h3>
+        <h3 className="font-semibold">{isEdit ? 'Modifica Misurazione' : 'Nuova Misurazione'}</h3>
         <button onClick={onClose}><X className="w-5 h-5 text-muted-foreground" /></button>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Label className="text-xs">Data *</Label>
-          <Input type="date" value={form.measured_at} onChange={e => setForm({ ...form, measured_at: e.target.value })} required />
+          <Input type="date" value={form.measured_at}
+            onChange={e => setForm({ ...form, measured_at: e.target.value })} required />
         </div>
-
         <div className="grid grid-cols-2 gap-3">
           {field('weight', 'Peso', '75', 'kg')}
           {field('height', 'Altezza', '175', 'cm')}
         </div>
-
         <div className="grid grid-cols-3 gap-3">
           {field('body_fat', 'Grasso Corp.', '20', '%')}
           {field('waist', 'Vita', '85', 'cm')}
           {field('hip', 'Fianchi', '95', 'cm')}
         </div>
-
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {field('blood_sugar', 'Glicemia', '90', 'mg/dL')}
+          {field('hba1c', 'Glicata (HbA1c)', '5.4', '%')}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           {field('oxygen_saturation', 'SpO2', '98', '%')}
           {field('temperature', 'Temperatura', '36.5', '°C')}
         </div>
-
         <Button type="submit" className="w-full rounded-xl" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Salvataggio...' : 'Salva Misurazione'}
+          {mutation.isPending ? 'Salvataggio...' : isEdit ? 'Aggiorna Misurazione' : 'Salva Misurazione'}
         </Button>
       </form>
     </div>
