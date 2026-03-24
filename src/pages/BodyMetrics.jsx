@@ -75,6 +75,7 @@ export default function BodyMetrics() {
 
       {(showForm || editingItem) && (
         <BodyMetricForm
+          key={editingItem?.id ?? 'new'}
           onClose={() => { setShowForm(false); setEditingItem(null); }}
           initialData={editingItem}
         />

@@ -85,4 +85,8 @@
   body {
     @apply bg-background text-foreground font-inter;
   }
+  input::placeholder,
+  textarea::placeholder {
+    opacity: 0.35;
+  }
 }

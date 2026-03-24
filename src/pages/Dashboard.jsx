@@ -14,7 +14,7 @@ export default function Dashboard() {
 
   const { data: bodyData = [] } = useQuery({
     queryKey: ['body'],
-    queryFn: () => base44.entities.BodyMetric.list('-measured_at', 10),
+    queryFn: () => base44.entities.BodyMetric.list('-created_date', 10),
   });
 
   const { data: meds = [] } = useQuery({
@@ -59,6 +59,7 @@ export default function Dashboard() {
           value={lastBP ? `${lastBP.systolic}/${lastBP.diastolic}` : null}
           unit="mmHg"
           color="primary"
+          to="/blood-pressure?add=true"
         />
         <StatCard
           icon={Activity}
@@ -66,6 +67,7 @@ export default function Dashboard() {
           value={lastBP?.heart_rate}
           unit="bpm"
           color="destructive"
+          to="/blood-pressure?add=true"
         />
         <StatCard
           icon={Scale}
@@ -73,6 +75,7 @@ export default function Dashboard() {
           value={lastBody?.weight}
           unit="kg"
           color="accent"
+          to="/body-metrics?add=true"
         />
         <StatCard
           icon={Thermometer}
@@ -80,6 +83,7 @@ export default function Dashboard() {
           value={lastBody?.temperature}
           unit="°C"
           color="chart4"
+          to="/body-metrics?add=true"
         />
         <StatCard
           icon={Droplets}
@@ -87,12 +91,14 @@ export default function Dashboard() {
           value={lastBody?.hba1c}
           unit="%"
           color="chart3"
+          to="/body-metrics?add=true"
         />
         <StatCard
           icon={Pill}
           label="Farmaci Attivi"
-          value={activeMeds}
+          value={activeMeds || null}
           color="chart3"
+          to="/medications?add=true"
         />
       </div>
 

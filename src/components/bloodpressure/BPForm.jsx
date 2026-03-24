@@ -29,14 +29,19 @@ export default function BPForm({ onClose, initialData }) {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['bp'] }); onClose(); },
   });
 
+  const hasBP = form.systolic || form.diastolic;
+  const hasHR = !!form.heart_rate;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const data = {
-      ...form,
-      systolic:   Number(form.systolic),
-      diastolic:  Number(form.diastolic),
-      heart_rate: form.heart_rate ? Number(form.heart_rate) : undefined,
-    };
+    if (!hasBP && !hasHR) return;
+    if (hasBP && (!form.systolic || !form.diastolic)) return;
+    const data = { ...form };
+    if (form.systolic)   data.systolic   = Number(form.systolic);
+    else                 delete data.systolic;
+    if (form.diastolic)  data.diastolic  = Number(form.diastolic);
+    else                 delete data.diastolic;
+    data.heart_rate = form.heart_rate ? Number(form.heart_rate) : undefined;
     if (!isEdit) data.measured_at = new Date().toISOString();
     mutation.mutate(data);
   };
@@ -50,14 +55,14 @@ export default function BPForm({ onClose, initialData }) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <Label className="text-xs">Sistolica *</Label>
+            <Label className="text-xs">Sistolica</Label>
             <Input type="number" placeholder="120" value={form.systolic}
-              onChange={e => setForm({ ...form, systolic: e.target.value })} required />
+              onChange={e => setForm({ ...form, systolic: e.target.value })} />
           </div>
           <div>
-            <Label className="text-xs">Diastolica *</Label>
+            <Label className="text-xs">Diastolica</Label>
             <Input type="number" placeholder="80" value={form.diastolic}
-              onChange={e => setForm({ ...form, diastolic: e.target.value })} required />
+              onChange={e => setForm({ ...form, diastolic: e.target.value })} />
           </div>
           <div>
             <Label className="text-xs">Battiti (bpm)</Label>
@@ -65,6 +70,9 @@ export default function BPForm({ onClose, initialData }) {
               onChange={e => setForm({ ...form, heart_rate: e.target.value })} />
           </div>
         </div>
+        {hasBP && (!form.systolic || !form.diastolic) && (
+          <p className="text-xs text-destructive">Inserisci sia sistolica che diastolica, oppure solo i battiti.</p>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs">Braccio</Label>
@@ -93,7 +101,7 @@ export default function BPForm({ onClose, initialData }) {
           <Textarea placeholder="Note aggiuntive..." value={form.notes}
             onChange={e => setForm({ ...form, notes: e.target.value })} />
         </div>
-        <Button type="submit" className="w-full rounded-xl" disabled={mutation.isPending}>
+        <Button type="submit" className="w-full rounded-xl" disabled={mutation.isPending || (!hasBP && !hasHR) || (hasBP && (!form.systolic || !form.diastolic))}>
           {mutation.isPending ? 'Salvataggio...' : isEdit ? 'Aggiorna Misurazione' : 'Salva Misurazione'}
         </Button>
       </form>

@@ -66,6 +66,7 @@ export default function Symptoms() {
 
       {(showForm || editingItem) && (
         <SymptomForm
+          key={editingItem?.id ?? 'new'}
           onClose={() => { setShowForm(false); setEditingItem(null); }}
           initialData={editingItem}
         />

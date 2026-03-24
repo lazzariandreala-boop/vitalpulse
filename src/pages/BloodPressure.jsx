@@ -39,6 +39,7 @@ export default function BloodPressure() {
 
       {(showForm || editingItem) && (
         <BPForm
+          key={editingItem?.id ?? 'new'}
           onClose={() => { setShowForm(false); setEditingItem(null); }}
           initialData={editingItem}
         />

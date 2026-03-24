@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 
 function getBPCategory(sys, dia) {
+  if (!sys || !dia) return { label: 'Solo FC', bg: 'bg-blue-500/15', text: 'text-blue-400', bar: 'bg-blue-500' };
   if (sys < 120 && dia < 80)  return { label: 'Normale',  bg: 'bg-green-500/15',  text: 'text-green-400',  bar: 'bg-green-500' };
   if (sys < 130 && dia < 80)  return { label: 'Elevata',  bg: 'bg-amber-500/15',  text: 'text-amber-400',  bar: 'bg-amber-500' };
   if (sys < 140 || dia < 90)  return { label: 'Stadio 1', bg: 'bg-orange-500/15', text: 'text-orange-400', bar: 'bg-orange-500' };
@@ -14,6 +15,7 @@ function getBPCategory(sys, dia) {
 
 export default function BPCard({ reading, onDelete, onEdit }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const hasBP = reading.systolic && reading.diastolic;
   const cat = getBPCategory(reading.systolic, reading.diastolic);
   const armLabel = reading.arm === 'left' ? 'Sin.' : 'Des.';
   const posLabel = { sitting: 'Seduto', standing: 'In piedi', lying: 'Sdraiato' }[reading.position] || '';
@@ -32,12 +34,24 @@ export default function BPCard({ reading, onDelete, onEdit }) {
       <div className={cn('absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl', cat.bar)} />
 
       <div className="pl-5 pr-4 py-4 flex items-center gap-4">
-        {/* BP value */}
+        {/* BP value or heart rate only */}
         <div className="text-center min-w-[80px]">
-          <p className="text-2xl font-bold tracking-tight leading-none">
-            {reading.systolic}/{reading.diastolic}
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">mmHg</p>
+          {hasBP ? (
+            <>
+              <p className="text-2xl font-bold tracking-tight leading-none">
+                {reading.systolic}/{reading.diastolic}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">mmHg</p>
+            </>
+          ) : (
+            <>
+              <p className="text-2xl font-bold tracking-tight leading-none flex items-center justify-center gap-1">
+                <Heart className="w-5 h-5 text-red-400" />
+                {reading.heart_rate}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">bpm</p>
+            </>
+          )}
         </div>
 
         {/* divider */}
@@ -49,7 +63,7 @@ export default function BPCard({ reading, onDelete, onEdit }) {
             <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-lg', cat.bg, cat.text)}>
               {cat.label}
             </span>
-            {reading.heart_rate && (
+            {hasBP && reading.heart_rate && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Heart className="w-3 h-3 text-red-400" />
                 {reading.heart_rate} bpm
@@ -58,9 +72,8 @@ export default function BPCard({ reading, onDelete, onEdit }) {
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap">
             <span>{format(new Date(reading.created_date), 'dd MMM yyyy, HH:mm', { locale: it })}</span>
-            {posLabel && <><span>·</span><span>{posLabel}</span></>}
-            <span>·</span>
-            <span>Braccio {armLabel}</span>
+            {hasBP && posLabel && <><span>·</span><span>{posLabel}</span></>}
+            {hasBP && <><span>·</span><span>Braccio {armLabel}</span></>}
           </div>
           {reading.notes && (
             <p className="text-xs text-muted-foreground/70 italic truncate">"{reading.notes}"</p>

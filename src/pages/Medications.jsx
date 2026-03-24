@@ -59,6 +59,7 @@ export default function Medications() {
 
       {(showForm || editingItem) && (
         <MedicationForm
+          key={editingItem?.id ?? 'new'}
           onClose={() => { setShowForm(false); setEditingItem(null); }}
           initialData={editingItem}
         />
