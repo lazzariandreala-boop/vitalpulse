@@ -1,0 +1,48 @@
+{
+  "name": "SymptomLog",
+  "type": "object",
+  "properties": {
+    "logged_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the symptom was logged"
+    },
+    "symptom": {
+      "type": "string",
+      "description": "Symptom description"
+    },
+    "severity": {
+      "type": "number",
+      "description": "Severity 1-10"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "pain",
+        "digestive",
+        "respiratory",
+        "neurological",
+        "skin",
+        "fatigue",
+        "mental",
+        "other"
+      ],
+      "description": "Symptom category"
+    },
+    "body_area": {
+      "type": "string",
+      "description": "Affected body area"
+    },
+    "duration": {
+      "type": "string",
+      "description": "How long it lasted"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "symptom",
+    "severity"
+  ]
+}

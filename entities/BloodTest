@@ -1,0 +1,57 @@
+{
+  "name": "BloodTest",
+  "type": "object",
+  "properties": {
+    "test_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the blood test"
+    },
+    "lab_name": {
+      "type": "string",
+      "description": "Laboratory name"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Uploaded PDF file URL"
+    },
+    "results": {
+      "type": "array",
+      "description": "Extracted test results",
+      "items": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "reference_min": {
+            "type": "number"
+          },
+          "reference_max": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "low",
+              "high"
+            ]
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "test_date"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "BodyMetric",
+  "type": "object",
+  "properties": {
+    "measured_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of measurement"
+    },
+    "weight": {
+      "type": "number",
+      "description": "Weight in kg"
+    },
+    "height": {
+      "type": "number",
+      "description": "Height in cm"
+    },
+    "bmi": {
+      "type": "number",
+      "description": "Body Mass Index"
+    },
+    "body_fat": {
+      "type": "number",
+      "description": "Body fat percentage"
+    },
+    "waist": {
+      "type": "number",
+      "description": "Waist circumference in cm"
+    },
+    "hip": {
+      "type": "number",
+      "description": "Hip circumference in cm"
+    },
+    "blood_sugar": {
+      "type": "number",
+      "description": "Blood sugar (mg/dL)"
+    },
+    "oxygen_saturation": {
+      "type": "number",
+      "description": "SpO2 percentage"
+    },
+    "temperature": {
+      "type": "number",
+      "description": "Body temperature in \u00b0C"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "measured_at"
+  ]
+}

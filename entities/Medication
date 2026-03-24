@@ -1,0 +1,61 @@
+{
+  "name": "Medication",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Medication name"
+    },
+    "dosage": {
+      "type": "string",
+      "description": "Dosage (e.g. 500mg)"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "once_daily",
+        "twice_daily",
+        "three_times_daily",
+        "weekly",
+        "as_needed"
+      ],
+      "description": "How often to take"
+    },
+    "time_of_day": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "morning",
+          "afternoon",
+          "evening",
+          "night"
+        ]
+      },
+      "description": "When during the day"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "purpose": {
+      "type": "string",
+      "description": "What the medication is for"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "dosage"
+  ]
+}
