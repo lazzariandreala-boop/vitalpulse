@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import PageHeader from '../components/shared/PageHeader';
 import EmptyState from '../components/shared/EmptyState';
 import SymptomForm from '../components/symptoms/SymptomsForm';
+import ConfirmDialog from '../components/shared/ConfirmDialog';
 
 const catLabels = {
   pain: '🔴 Dolore', digestive: '🟡 Digestivo', respiratory: '🔵 Respiratorio',
@@ -33,6 +34,7 @@ function SeverityBar({ value }) {
 export default function Symptoms() {
   const urlParams = new URLSearchParams(window.location.search);
   const [showForm, setShowForm] = useState(urlParams.get('add') === 'true');
+  const [confirmId, setConfirmId] = useState(null);
   const qc = useQueryClient();
 
   const { data: symptoms = [], isLoading } = useQuery({
@@ -51,6 +53,13 @@ export default function Symptoms() {
 
   return (
     <div className="space-y-5 pb-20 lg:pb-6">
+      <ConfirmDialog
+        open={confirmId !== null}
+        onConfirm={() => { deleteMutation.mutate(confirmId); setConfirmId(null); }}
+        onCancel={() => setConfirmId(null)}
+        title="Eliminare questo sintomo?"
+        description="La registrazione del sintomo verrà eliminata definitivamente."
+      />
       <PageHeader title="Diario Sintomi" subtitle="Registra e monitora i tuoi sintomi"
         onAdd={() => setShowForm(true)} addLabel="Registra Sintomo" />
 
@@ -81,8 +90,8 @@ export default function Symptoms() {
                   </div>
                   {s.notes && <p className="text-xs text-muted-foreground mt-1">{s.notes}</p>}
                 </div>
-                <button onClick={() => deleteMutation.mutate(s.id)}
-                  className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-destructive shrink-0">
+                <button onClick={() => setConfirmId(s.id)}
+                  className="p-2 text-muted-foreground/40 hover:text-destructive lg:opacity-0 lg:group-hover:opacity-100 transition-all shrink-0">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

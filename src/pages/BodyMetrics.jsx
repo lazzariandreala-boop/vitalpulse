@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import PageHeader from '../components/shared/PageHeader';
 import EmptyState from '../components/shared/EmptyState';
 import BodyMetricForm from '../components/bodymetrics/BodyMetricsForm';
+import ConfirmDialog from '../components/shared/ConfirmDialog';
 
 function WeightChart({ data }) {
   const chartData = [...data]
@@ -30,7 +31,7 @@ function WeightChart({ data }) {
           <LineChart data={chartData}>
             <XAxis dataKey="date" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-            <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(214,20%,90%)', fontSize: 12 }} />
+            <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
             <Line type="monotone" dataKey="peso" stroke="hsl(168,76%,42%)" strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
@@ -42,6 +43,7 @@ function WeightChart({ data }) {
 export default function BodyMetrics() {
   const urlParams = new URLSearchParams(window.location.search);
   const [showForm, setShowForm] = useState(urlParams.get('add') === 'true');
+  const [confirmId, setConfirmId] = useState(null);
   const qc = useQueryClient();
 
   const { data: metrics = [], isLoading } = useQuery({
@@ -60,6 +62,13 @@ export default function BodyMetrics() {
 
   return (
     <div className="space-y-5 pb-20 lg:pb-6">
+      <ConfirmDialog
+        open={confirmId !== null}
+        onConfirm={() => { deleteMutation.mutate(confirmId); setConfirmId(null); }}
+        onCancel={() => setConfirmId(null)}
+        title="Eliminare questa misurazione?"
+        description="I dati corporei registrati verranno eliminati definitivamente."
+      />
       <PageHeader title="Metriche Corporee" subtitle="Peso, BMI, glicemia e altro"
         onAdd={() => setShowForm(true)} addLabel="Nuova Misurazione" />
 
@@ -88,8 +97,8 @@ export default function BodyMetrics() {
                   {format(new Date(m.measured_at), 'dd MMMM yyyy', { locale: it })}
                 </p>
               </div>
-              <button onClick={() => deleteMutation.mutate(m.id)}
-                className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-destructive">
+              <button onClick={() => setConfirmId(m.id)}
+                className="p-2 text-muted-foreground/40 hover:text-destructive lg:opacity-0 lg:group-hover:opacity-100 transition-all">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>

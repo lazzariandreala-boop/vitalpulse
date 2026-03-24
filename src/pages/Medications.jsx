@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import PageHeader from '../components/shared/PageHeader';
 import EmptyState from '../components/shared/EmptyState';
 import MedicationForm from '../components/medications/MedicationForm';
+import ConfirmDialog from '../components/shared/ConfirmDialog';
 
 const freqLabels = {
   once_daily: '1x/giorno',
@@ -91,31 +92,41 @@ export default function Medications() {
 }
 
 function MedCard({ med, onDelete, onToggle }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
   return (
-    <div className="bg-card rounded-xl border p-4 flex items-center gap-4 group hover:shadow-sm transition-shadow">
-      <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
-        <Pill className="w-5 h-5 text-purple-500" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="font-medium text-sm">{med.name}</p>
-          <Badge variant="secondary" className="text-[10px]">{med.dosage}</Badge>
+    <>
+      <ConfirmDialog
+        open={confirmOpen}
+        onConfirm={() => { setConfirmOpen(false); onDelete(med.id); }}
+        onCancel={() => setConfirmOpen(false)}
+        title="Eliminare questo farmaco?"
+        description="Il farmaco e tutte le sue informazioni verranno eliminati definitivamente."
+      />
+      <div className="bg-card rounded-xl border p-4 flex items-center gap-4 group hover:shadow-sm transition-shadow">
+        <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center shrink-0">
+          <Pill className="w-5 h-5 text-purple-400" />
         </div>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Clock className="w-3 h-3" /> {freqLabels[med.frequency] || med.frequency}
-          </span>
-          {med.time_of_day?.map(t => (
-            <span key={t} className="text-[10px] text-muted-foreground">{timeLabels[t] || t}</span>
-          ))}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-sm">{med.name}</p>
+            <Badge variant="secondary" className="text-[10px]">{med.dosage}</Badge>
+          </div>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="w-3 h-3" /> {freqLabels[med.frequency] || med.frequency}
+            </span>
+            {med.time_of_day?.map(t => (
+              <span key={t} className="text-[10px] text-muted-foreground">{timeLabels[t] || t}</span>
+            ))}
+          </div>
+          {med.purpose && <p className="text-xs text-muted-foreground mt-0.5">{med.purpose}</p>}
         </div>
-        {med.purpose && <p className="text-xs text-muted-foreground mt-0.5">{med.purpose}</p>}
+        <Switch checked={med.active} onCheckedChange={(checked) => onToggle(checked)} />
+        <button onClick={() => setConfirmOpen(true)}
+          className="p-2 text-muted-foreground/40 hover:text-destructive lg:opacity-0 lg:group-hover:opacity-100 transition-all">
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
-      <Switch checked={med.active} onCheckedChange={(checked) => onToggle(checked)} />
-      <button onClick={() => onDelete(med.id)}
-        className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-destructive">
-        <Trash2 className="w-4 h-4" />
-      </button>
-    </div>
+    </>
   );
 }

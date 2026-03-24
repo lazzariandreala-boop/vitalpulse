@@ -110,39 +110,36 @@ function dispatch(action) {
   });
 }
 
-function toast({ duration = 2000, ...props }) {
-  const id = genId();
+function toast({ id: providedId, duration = 2000, ...props }) {
+  const id = providedId ?? genId();
 
   const update = (props) =>
-    dispatch({
-      type: actionTypes.UPDATE_TOAST,
-      toast: { ...props, id },
-    });
+    dispatch({ type: actionTypes.UPDATE_TOAST, toast: { ...props, id } });
 
   const dismiss = () =>
     dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id });
 
-  dispatch({
-    type: actionTypes.ADD_TOAST,
-    toast: {
-      ...props,
-      id,
-      open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss();
+  // Se esiste già un toast con questo ID, aggiornalo (evita duplicati)
+  const existing = memoryState.toasts.find(t => t.id === id);
+  if (existing) {
+    dispatch({ type: actionTypes.UPDATE_TOAST, toast: { ...props, id, open: true } });
+  } else {
+    dispatch({
+      type: actionTypes.ADD_TOAST,
+      toast: {
+        ...props,
+        id,
+        open: true,
+        onOpenChange: (open) => { if (!open) dismiss(); },
       },
-    },
-  });
+    });
+  }
 
   if (duration > 0) {
     setTimeout(dismiss, duration);
   }
 
-  return {
-    id,
-    dismiss,
-    update,
-  };
+  return { id, dismiss, update };
 }
 
 function useToast() {
