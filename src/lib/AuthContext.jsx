@@ -1,6 +1,12 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-
-const USER_KEY = 'vitalpulse_user';
+import { createContext, useState, useContext, useEffect } from 'react';
+import {
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
 
 const AuthContext = createContext();
 
@@ -9,32 +15,51 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(USER_KEY);
-      if (stored) setUser(JSON.parse(stored));
-    } catch { /* ignore */ }
-    setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const docRef = doc(db, 'users', firebaseUser.uid);
+        const snap = await getDoc(docRef);
+
+        if (!snap.exists()) {
+          // First login: populate from Google account
+          const profileData = {
+            full_name: firebaseUser.displayName || '',
+            email: firebaseUser.email || '',
+            photo_url: firebaseUser.photoURL || '',
+            created_at: new Date().toISOString(),
+          };
+          await setDoc(docRef, profileData);
+          setUser({ id: firebaseUser.uid, ...profileData });
+        } else {
+          setUser({ id: firebaseUser.uid, ...snap.data() });
+        }
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
-  const login = ({ full_name, email }) => {
-    const newUser = {
-      id: crypto.randomUUID(),
-      full_name: full_name.trim(),
-      email: email?.trim() || '',
-      created_at: new Date().toISOString(),
-    };
-    localStorage.setItem(USER_KEY, JSON.stringify(newUser));
-    setUser(newUser);
+  const loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
   };
 
-  const updateUser = (data) => {
-    const updated = { ...user, ...data };
-    localStorage.setItem(USER_KEY, JSON.stringify(updated));
-    setUser(updated);
+  const updateUser = async (data) => {
+    if (!auth.currentUser) return;
+    // Firestore rejects undefined values — strip them out
+    const clean = Object.fromEntries(
+      Object.entries(data).filter(([, v]) => v !== undefined)
+    );
+    const docRef = doc(db, 'users', auth.currentUser.uid);
+    await setDoc(docRef, clean, { merge: true });
+    setUser(prev => ({ ...prev, ...clean }));
   };
 
-  const logout = () => {
-    localStorage.removeItem(USER_KEY);
+  const logout = async () => {
+    await signOut(auth);
     setUser(null);
   };
 
@@ -43,10 +68,9 @@ export const AuthProvider = ({ children }) => {
       user,
       isLoggedIn: !!user,
       isLoading,
-      login,
+      loginWithGoogle,
       updateUser,
       logout,
-      // Legacy props used by App.jsx
       isAuthenticated: !!user,
       isLoadingAuth: isLoading,
       isLoadingPublicSettings: false,

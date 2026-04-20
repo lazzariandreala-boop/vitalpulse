@@ -8,11 +8,20 @@ import { base44 } from '@/api/apiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 
-const EMPTY = { systolic: '', diastolic: '', heart_rate: '', arm: 'left', position: 'sitting', notes: '' };
+function nowLocal() {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  return d.toISOString().slice(0, 16);
+}
+
+const EMPTY = { measured_at: nowLocal(), systolic: '', diastolic: '', heart_rate: '', arm: 'left', position: 'sitting', notes: '' };
 
 export default function BPForm({ onClose, initialData }) {
   const isEdit = !!initialData;
   const [form, setForm] = useState(() => isEdit ? {
+    measured_at: initialData.measured_at
+      ? new Date(initialData.measured_at).toISOString().slice(0, 16)
+      : nowLocal(),
     systolic:   String(initialData.systolic   ?? ''),
     diastolic:  String(initialData.diastolic  ?? ''),
     heart_rate: String(initialData.heart_rate ?? ''),
@@ -42,7 +51,7 @@ export default function BPForm({ onClose, initialData }) {
     if (form.diastolic)  data.diastolic  = Number(form.diastolic);
     else                 delete data.diastolic;
     data.heart_rate = form.heart_rate ? Number(form.heart_rate) : undefined;
-    if (!isEdit) data.measured_at = new Date().toISOString();
+    data.measured_at = new Date(form.measured_at).toISOString();
     mutation.mutate(data);
   };
 
@@ -53,6 +62,11 @@ export default function BPForm({ onClose, initialData }) {
         <button onClick={onClose}><X className="w-5 h-5 text-muted-foreground" /></button>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label className="text-xs">Data e ora misurazione</Label>
+          <Input type="datetime-local" value={form.measured_at}
+            onChange={e => setForm({ ...form, measured_at: e.target.value })} />
+        </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
             <Label className="text-xs">Sistolica</Label>

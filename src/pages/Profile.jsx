@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import {
-  User, Save, LogOut, Copy, Check, Stethoscope,
+  User, Save, LogOut, Stethoscope,
   Phone, ChevronDown, X, Syringe, Activity
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -169,7 +169,6 @@ export default function Profile() {
     allergies: [], chronic_conditions: [], emergency_contact: '',
   });
   const [saving, setSaving] = useState(false);
-  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -181,12 +180,8 @@ export default function Profile() {
         gender: user.gender || '',
         height: user.height || '',
         blood_type: user.blood_type || '',
-        allergies: user.allergies
-          ? (Array.isArray(user.allergies) ? user.allergies : user.allergies.split(', ').filter(Boolean))
-          : [],
-        chronic_conditions: user.chronic_conditions
-          ? (Array.isArray(user.chronic_conditions) ? user.chronic_conditions : user.chronic_conditions.split(', ').filter(Boolean))
-          : [],
+        allergies: Array.isArray(user.allergies) ? user.allergies : [],
+        chronic_conditions: Array.isArray(user.chronic_conditions) ? user.chronic_conditions : [],
         emergency_contact: user.emergency_contact || '',
       });
     }
@@ -196,20 +191,14 @@ export default function Profile() {
 
   const handleSave = async () => {
     setSaving(true);
-    updateUser({
+    await updateUser({
       ...form,
       height: form.height ? Number(form.height) : undefined,
-      allergies: form.allergies.join(', '),
-      chronic_conditions: form.chronic_conditions.join(', '),
+      allergies: form.allergies,
+      chronic_conditions: form.chronic_conditions,
     });
     toast({ id: 'profile-save', variant: 'success', title: 'Profilo aggiornato', description: 'Le tue informazioni sono state salvate.' });
     setSaving(false);
-  };
-
-  const copyId = () => {
-    navigator.clipboard.writeText(user.id);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!user) return null;
@@ -231,27 +220,21 @@ export default function Profile() {
         <div className="h-2 bg-gradient-to-r from-primary to-accent" />
         <CardContent className="pt-5 pb-5">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center text-primary font-bold text-xl shrink-0">
-              {initials}
-            </div>
+            {user.photo_url ? (
+              <img
+                src={user.photo_url}
+                alt={user.full_name}
+                referrerPolicy="no-referrer"
+                className="w-16 h-16 rounded-2xl object-cover shrink-0"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center text-primary font-bold text-xl shrink-0">
+                {initials}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-lg leading-tight">{user.full_name || 'Utente'}</p>
               {user.email && <p className="text-sm text-muted-foreground truncate">{user.email}</p>}
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded-md truncate max-w-[240px]">
-                  {user.id}
-                </span>
-                <button
-                  onClick={copyId}
-                  className="shrink-0 p-1.5 rounded-md hover:bg-muted transition-colors"
-                  title="Copia ID"
-                >
-                  {copied
-                    ? <Check className="w-3.5 h-3.5 text-green-500" />
-                    : <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                  }
-                </button>
-              </div>
             </div>
           </div>
         </CardContent>

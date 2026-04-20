@@ -89,4 +89,15 @@
   textarea::placeholder {
     opacity: 0.35;
   }
+  input[type="datetime-local"] {
+    width: 100%;
+  }
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    margin-left: auto;
+    cursor: pointer;
+    opacity: 0.5;
+  }
+  input[type="datetime-local"]::-webkit-datetime-edit {
+    flex: 1;
+  }
 }

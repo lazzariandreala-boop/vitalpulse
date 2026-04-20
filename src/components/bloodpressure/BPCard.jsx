@@ -71,7 +71,7 @@ export default function BPCard({ reading, onDelete, onEdit }) {
             )}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap">
-            <span>{format(new Date(reading.created_date), 'dd MMM yyyy, HH:mm', { locale: it })}</span>
+            <span>{format(new Date(reading.measured_at || reading.created_date), 'dd MMM yyyy, HH:mm', { locale: it })}</span>
             {hasBP && posLabel && <><span>·</span><span>{posLabel}</span></>}
             {hasBP && <><span>·</span><span>Braccio {armLabel}</span></>}
           </div>

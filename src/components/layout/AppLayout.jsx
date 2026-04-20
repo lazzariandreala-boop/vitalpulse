@@ -124,12 +124,23 @@ export default function AppLayout() {
           <div className="px-3 pb-4 space-y-1 border-t pt-3">
             {/* User info */}
             {user && (
-              <div className="px-4 py-2 mb-1">
-                <p className="text-xs font-medium truncate">{user.full_name}</p>
-                {user.email && <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>}
-                <p className="text-[10px] text-muted-foreground/60 mt-0.5 font-mono truncate" title={user.id}>
-                  ID: {user.id.slice(0, 8)}…
-                </p>
+              <div className="flex items-center gap-3 px-4 py-2 mb-1">
+                {user.photo_url ? (
+                  <img
+                    src={user.photo_url}
+                    alt={user.full_name}
+                    referrerPolicy="no-referrer"
+                    className="w-8 h-8 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-xs shrink-0">
+                    {(user.full_name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-medium truncate">{user.full_name}</p>
+                  {user.email && <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>}
+                </div>
               </div>
             )}
 
@@ -158,7 +169,7 @@ export default function AppLayout() {
       {/* Bottom nav - mobile */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t safe-area-inset-bottom">
         <div className="flex justify-around py-1.5 px-2">
-          {navItems.slice(0, 5).map(item => (
+          {[...navItems.slice(0, 4), navItems[6]].map(item => (
             <Link
               key={item.path}
               to={item.path}
